@@ -64,7 +64,7 @@
    
        r = formatDec(randomDec(0.5,5,1)*3); // makes for exact answers for cone, sphere, and hemisphere
        d = formatDec(r*2);
-       h = randomDec(2,10,1);
+       h = formatDec(randomDec(2,5,1)+d); //make the height bigger so that the cone is drawn in and looks good
        var isRadius = false;
 
        switch(type) {
@@ -90,7 +90,7 @@
            
            // Determine the 3D Shape
            switch(random(0,3)){
-           //switch(2){
+           //switch(1){
            
               // Cylinder
               case 0:
@@ -101,9 +101,12 @@
               
               // Cone
               case 1:        
-              problem += "a cone whose "+part+" and height is \\("+h+"~cm\\)";
+              problem += "the shape shown.";
               v = formatDec(round(1/3*r**2*h*Math.PI*100)/100);
               answer = "\\("+formatDec(1/3*r**2*h)+"\\pi\\approx"+v+"~cm^{3}\\)";
+
+              drawCone(r*2,h,isRadius," cm");
+              $('#plot').show();
               break;
               
               // Sphere
@@ -172,6 +175,137 @@
        $("#answer").html(doublesigns(answer));
        renderMathInElement(document.body);
        
+    }
+
+    function drawCone(diameter,height,isRadius,lengthLabel){
+    try {
+      var xCoords = [];
+
+      if(isRadius){ // draw a radius
+        xCoords = [1+diameter/2, 1+diameter];
+        xLabels = [.75*diameter+1,1+diameter/1.5];
+      }else{ //draw a diameter
+        xCoords = [1, diameter+1];
+        xLabels = [.5*diameter+1,1+diameter/1.5];
+      }
+
+    var heightLabel = height+" cm";
+
+     if(isRadius){
+        lengthLabel = formatDec(diameter/2)+lengthLabel;
+     }
+     else{
+        lengthLabel = diameter+lengthLabel;
+     }
+
+    // draws the diameter
+     var trace1 = {
+        x: xCoords,
+        y: [1+diameter/10, 1+diameter/10],
+        type: 'scatter',
+        mode: 'lines+markers', 
+        marker: {size: 3,color: '#3F4591',},
+        name:"",
+        line: {
+          color: '#3F4591',
+          dash: 'dash'
+        }
+      };
+
+      // draws the top of the cone
+      var trace2 = {
+        x: [1, 1+diameter/2, diameter+1],
+        y: [1+diameter/10, 1+height, 1+diameter/10],
+        type: 'scatter',
+        mode: 'lines+markers', 
+        marker: {size: 3,color: '#3F4591',},
+        name:"",
+      };
+
+      // draws the height
+      var trace3 = {
+        x: [1+diameter/2, 1+diameter/2],
+        y: [1+height, 1+diameter/10],
+        type: 'scatter',
+        mode: 'lines+markers', 
+        marker: {size: 3,color: '#3F4591',},
+        name:"",
+        line: {
+          color: '#3F4591',
+          dash: 'dash'
+        }
+      };
+
+      // Calculate the min and max values for x and y
+      // Use this to autoscale the grid 
+      const scaleMin = 0;
+      const scaleMax = Math.max(diameter+2,height+2);
+      
+      var axis_template ={
+        showgrid: false,
+        zeroline: false,
+        range: [scaleMin, scaleMax], 
+        showticklabels:false
+      };         
+
+      // make grid smaller for mobile
+      var gridsize;
+      var indent;
+      // gridsize= Math.min(.95*window.innerWidth,550);
+      
+      if(window.innerWidth > 601){
+         gridsize = 500;
+         indent = 20;
+      }else{
+         gridsize = 350;
+         indent = 0;
+      }
+      
+      var layout = {
+        xaxis:axis_template,
+        yaxis:axis_template,
+        showlegend: false,
+        width: gridsize,
+        height: gridsize,
+        hovermode: 'closest',
+        shapes: [
+        // Unfilled Circle
+        {
+        type: 'circle',
+        xref: 'x',
+        yref: 'y',
+        x0: 1,
+        y0: 1,
+        x1: diameter+1,
+        y1: 1+diameter/5,
+        line: {
+          color: '#3F4591',
+          dash: 'solid'
+        }
+        },
+        ]
+      };  
+      
+      var labels =   {
+        x: xLabels,
+        y: [1+diameter/10+(1+diameter)/25,1+height/2], 
+        mode: 'text',
+        text:[lengthLabel,heightLabel],
+        textposition:"center",
+        textfont: {
+          size:18,
+        },
+        hoverinfo:'none'
+      };   
+
+      var data = [trace1,trace2,trace3,labels];
+      Plotly.newPlot('plot', data, layout,{displayModeBar: false});
+    }
+    catch (err) {
+      console.error(err)
+      alert(err)
+    }
+    
     }
 
     function drawSphere(diameter,isRadius,lengthLabel){
