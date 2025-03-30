@@ -19,6 +19,7 @@
     var testing = false;
     $('#generate').click(function(){
         if(!testing){$("#answer").hide(); $("#show-answer").val("Show Answer");}
+        $('#plot').hide();
 
         var type;
         // handles the formatting for selecting any type
@@ -64,11 +65,12 @@
        r = formatDec(randomDec(0.5,5,1)*3); // makes for exact answers for cone, sphere, and hemisphere
        d = formatDec(r*2);
        h = randomDec(2,10,1);
-       
+       var isRadius = false;
+
        switch(type) {
            // Finding Volume
            case 1: 
-           problem += "Determine the volume of a ";
+           problem += "Determine the volume of ";
           
            // Determine whether to give the radius or the diameter
            switch(random(0,1)){
@@ -76,6 +78,7 @@
               // give radius
               case 0:
               part = "radius is \\("+r+"~cm\\)";
+              isRadius = true;
               break;
               
               // give diameter
@@ -87,31 +90,35 @@
            
            // Determine the 3D Shape
            switch(random(0,3)){
+           //switch(2){
            
               // Cylinder
               case 0:
-              problem += "cylinder whose "+part+" and height is \\("+h+"~cm\\)";
+              problem += "a cylinder whose "+part+" and height is \\("+h+"~cm\\)";
               v = formatDec(round(r**2*h*Math.PI*100)/100);
               answer = "\\("+formatDec(r**2*h)+"\\pi\\approx"+v+"~cm^{3}\\)";
               break;
               
               // Cone
               case 1:        
-              problem += "cone whose "+part+" and height is \\("+h+"~cm\\)";
+              problem += "a cone whose "+part+" and height is \\("+h+"~cm\\)";
               v = formatDec(round(1/3*r**2*h*Math.PI*100)/100);
               answer = "\\("+formatDec(1/3*r**2*h)+"\\pi\\approx"+v+"~cm^{3}\\)";
               break;
               
               // Sphere
               case 2:     
-              problem += "sphere whose "+part;
+              problem += "the shape shown.";
               v = formatDec(round(4/3*r**3*Math.PI*100)/100);
               answer = "\\("+formatDec(4/3*r**3)+"\\pi\\approx"+v+"~cm^{3}\\)";
+
+              drawSphere(r*2,isRadius," cm");
+              $('#plot').show();
               break;
               
               // Hemisphere (half a sphere)
               case 3:     
-              problem += "hemisphere whose "+part;
+              problem += "a hemisphere whose "+part;
               v = formatDec(round(2/3*r**3*Math.PI*100)/100);
               answer = "\\("+formatDec(2/3*r**3)+"\\pi\\approx"+v+"~cm^{3}\\)";
               break;
@@ -164,7 +171,118 @@
        $("#generated").html(problem);
        $("#answer").html(doublesigns(answer));
        renderMathInElement(document.body);
-       //MathJax.Hub.queue.Push(["Typeset",MathJax.Hub,"generated"]);
-       //MathJax.Hub.queue.Push(["Typeset",MathJax.Hub,"answer"]);
+       
+    }
+
+    function drawSphere(diameter,isRadius,lengthLabel){
+    try {
+      var xCoords = [];
+
+      if(isRadius){ // draw a radius
+        xCoords = [1+diameter/2, 1+diameter];
+        xLabels = [.75*diameter+1];
+      }else{ //draw a diameter
+        xCoords = [1, diameter+1];
+        xLabels = [.5*diameter+1];
+      }
+
+     if(isRadius){
+        lengthLabel = formatDec(diameter/2)+lengthLabel;
+     }
+     else{
+        lengthLabel = diameter+lengthLabel;
+     }
+
+     var trace1 = {
+        x: xCoords,
+        y: [diameter/2+1, diameter/2+1],
+        type: 'scatter',
+        mode: 'lines+markers', 
+        marker: {size: 3,color: '#3F4591',},
+        name:"",
+      };
+
+      // Calculate the min and max values for x and y
+      // Use this to autoscale the grid 
+      const scaleMin = 0;
+      const scaleMax = diameter+2;
+      
+      var axis_template ={
+        showgrid: true,
+        zeroline: false,
+        range: [scaleMin, scaleMax], 
+        showticklabels:false
+      };         
+
+      // make grid smaller for mobile
+      var gridsize;
+      var indent;
+      // gridsize= Math.min(.95*window.innerWidth,550);
+      
+      if(window.innerWidth > 601){
+         gridsize = 500;
+         indent = 20;
+      }else{
+         gridsize = 300;
+         indent = 0;
+      }
+      
+      var layout = {
+        xaxis:axis_template,
+        yaxis:axis_template,
+        showlegend: false,
+        width: gridsize,
+        height: gridsize,
+        hovermode: 'closest',
+        shapes: [
+        // Unfilled Circle
+        {
+       type: 'circle',
+        xref: 'x',
+        yref: 'y',
+        x0: 1,
+        y0: 1,
+        x1: diameter+1,
+        y1: diameter+1,
+        line: {
+          color: '#3F4591'
+        }
+        },
+        {
+        type: 'circle',
+        xref: 'x',
+        yref: 'y',
+        x0: 1,
+        y0: 1+2*diameter/5,
+        x1: diameter+1,
+        y1: 1+3*diameter/5,
+        line: {
+          color: '#3F4591',
+          dash: 'dash'
+        }
+        },
+        ]
+      };  
+      
+      var labels =   {
+        x: xLabels,
+        y: [1+diameter/2+(1+diameter)/25], 
+        mode: 'text',
+        text:[lengthLabel],
+        textposition:"center",
+        textfont: {
+          size:20,
+        },
+        hoverinfo:'none'
+      };   
+
+      var data = [trace1,labels];
+      Plotly.newPlot('plot', data, layout,{displayModeBar: false});
+    }
+    catch (err) {
+      console.error(err)
+      alert(err)
+    }
+    
     }
 </script>
