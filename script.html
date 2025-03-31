@@ -68,6 +68,7 @@
        var isRadius = false;
 
        switch(type) {
+       
            // Finding Volume
            case 1: 
            problem += "Determine the volume of the shape shown.";
@@ -582,6 +583,10 @@
         mode: 'lines+markers', 
         marker: {size: 3,color: '#3F4591',},
         name:"",
+        line: {
+          color: '#3F4591',
+          dash: 'dash'
+        }
       };
 
       // Calculate the min and max values for x and y
@@ -597,7 +602,19 @@
       };         
 
       // compile the expression for the semicircle
-      var expr = math.compile("sqrt("+(diameter)/2+"^2-(x-"+(diameter/2+1)+")^2)+"+(diameter/2+1));
+      var semifunc = "";
+      if(random(0,1)==0){
+        // bottom half
+        semifunc = "-1*sqrt("+(diameter)/2+"^2-(x-"+(diameter/2+1)+")^2)+"+(diameter/2+1);
+
+      }else{
+        // top half
+        semifunc = "sqrt("+(diameter)/2+"^2-(x-"+(diameter/2+1)+")^2)+"+(diameter/2+1);
+
+      }
+      
+      var expr = math.compile(semifunc);
+
       // evaluate the expression repeatedly for different values of x
       var xValues = math.range(1, diameter+1, 0.001).toArray();
       const yValues = xValues.map(function (x) {
@@ -649,7 +666,7 @@
         y1: 1+3*diameter/5,
         line: {
           color: '#3F4591',
-          dash: 'dash'
+          dash: 'solid'
         }
         },
         ]
